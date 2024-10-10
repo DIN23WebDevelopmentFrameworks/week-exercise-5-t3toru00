@@ -1,17 +1,95 @@
+import React, { useEffect, useState } from 'react';
 
-const App = () => {
+// Component to fetch and display recipe tags
+const RecipeTags = ({ onTagClick }) => {
+  const [tags, setTags] = useState([]);
 
+  useEffect(() => {
+    // Fetch tags from API
+    fetch('https://dummyjson.com/recipes/tags')
+      .then((response) => response.json())
+      .then((data) => {
+        setTags(data);
+      })
+      .catch((error) => {
+        console.error('Error fetching recipe tags:', error);
+      });
+  }, []);
 
   return (
     <div>
-        <h1>ACME Recipe O'Master</h1>
-        <div>Remove this and implement recipe tag list here. </div>
-        <ul>
-        <li>On start the application displays a list of recipe tags such as 'pasta', 'cookies' etc. The tag information is loaded from an API (https://dummyjson.com/recipes/tags)</li>
-        <li> The user can click on a tag and the application will then hide the tag list and display a list of recipes matching the selected tag. The recipe information for the clicked tag is loaded from an API (https://dummyjson.com/recipes/tag/Pizza).</li>
-        <li> User can also go back to the tag list. </li>
-        <li> Each receipe is displayed as box where recipe data such as ingredients and instructions are displayed</li>
-        </ul>
+      <h2>Select a Recipe Tag:</h2>
+      <ul>
+        {tags.map((tag) => (
+          <li key={tag} onClick={() => onTagClick(tag)} style={{ cursor: 'pointer', marginBottom: '10px' }}>
+            {tag}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Component to fetch and display recipes for a selected tag
+const RecipeList = ({ tag, onBackClick }) => {
+  const [recipes, setRecipes] = useState([]);
+
+  useEffect(() => {
+    // Fetch recipes for the selected tag from API
+    fetch('https://dummyjson.com/recipes/tag/${tag}')
+      .then((response) => response.json())
+      .then((data) => {
+        setRecipes(data.recipes);
+      })
+      .catch((error) => {
+        console.error('Error fetching recipes:', error);
+      });
+  }, [tag]);
+
+  return (
+    <div>
+      <button onClick={onBackClick}>Back to Tags</button>
+      <h2>Recipes for "{tag}"</h2>
+      <ul>
+        {recipes.map((recipe) => (
+          <li key={recipe.id} style={{ border: '1px solid #ddd', padding: '10px', marginBottom: '10px' }}>
+            <h3>{recipe.name}</h3>
+            <p><strong>Ingredients:</strong> {recipe.ingredients.join(', ')}</p>
+            <p><strong>Instructions:</strong></p>
+            <ol>
+              {recipe.instructions.map((instruction, index) => (
+                <li key={index}>{instruction}</li>
+              ))}
+            </ol>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Main App component
+const App = () => {
+  const [selectedTag, setSelectedTag] = useState(null);
+
+  // Handle clicking a tag to show recipes
+  const handleTagClick = (tag) => {
+    setSelectedTag(tag);
+  };
+
+  // Handle going back to the tag list
+  const handleBackClick = () => {
+    setSelectedTag(null);
+  };
+
+  return (
+    <div>
+      <h1>ACME Recipe O'Master</h1>
+      {selectedTag ? (
+        <RecipeList tag={selectedTag} onBackClick={handleBackClick} />
+      ) : (
+        <RecipeTags onTagClick={handleTagClick} />
+      )}
     </div>
   );
 };
